@@ -1,0 +1,123 @@
+Refer
+https://www.youtube.com/watch?v=qZa5JXmsWZs
+https://www.youtube.com/watch?v=suI-bUByP_k
+
+CodeDeploy with Github
+
+1 Create Free Account
+
+    Credit/Debit Rs.2
+
+    Phonecall verfication
+
+    Ec2 enabled within 24 hours
+
+2 Github Account 
+  Create new Repository
+  Extract the below to the repo
+  http://s3.amazonaws.com/aws-codedeploy-us-east-1/samples/latest/SampleApp_Linux.zip
+
+3 Go To IAM
+  Create 2 Roles
+  One for Instance   
+  One for Service
+
+  Create Role 
+  Give any Name
+  Select AmazonEC2 
+  Attach Policy
+
+    For Instance
+        AmazonEC2RoleforAWSCodeDeploy
+        AutoScalingNotificationAccessRole
+
+    For Service
+        AWSCodeDeployRole
+
+   Important
+   Then select "Service Role" 
+                Edit Trust Relationship     
+
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "codedeploy.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                    }
+                    ]
+                }
+
+4 Create User in IAM
+   Create New User
+   Create Access Key
+   Note it Down
+
+
+5 Ec2 Instance Launch
+  Launch New Instance
+  Select Linux
+  Select Next
+  Select "Instance Role" in IAM role
+  Launch
+  Edit Security Group
+  Create New key pair.
+  Download it
+  Note Down details
+  Launch Instance
+
+7 Ec2 Configure 
+
+  https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstances.html?icmpid=docs_ec2_console
+
+  For Windows
+  Configure via putty
+  https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html
+
+
+  Execute the following command in the Linux instance
+
+        REGION=$(curl 169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/[a-z]$//')
+
+        yum update -y
+
+        yum install ruby wget -y
+
+        yum install httpd
+
+        cd /home/ec2-user
+
+        wget https://aws-codedeploy-$REGION.s3.amazonaws.com/latest/install
+
+        chmod +x ./install
+
+        ./install auto
+
+8 CodeDeploy
+
+  Create New Application
+
+  Enter AppName and Deployment Group Name
+
+  Select Ec2 Instance
+
+  Service Role ARN - Choose "Service Role Created Above"
+
+  Create Application
+
+  Then Select the created Application
+
+  Deploy New Revision from "Actions Menu"
+
+  Enter details
+
+  Connect with Github
+
+  Enter Repo Name and commit key
+
+  Deploy
+
+9 Visit the public ip to see the app  
