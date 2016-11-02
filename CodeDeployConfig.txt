@@ -64,6 +64,7 @@ CodeDeploy with Github
   Select "Instance Role" in IAM role
   Launch
   Edit Security Group
+  Create Tag with key "Name" value "AnyValue"
   Create New key pair.
   Download it
   Note Down details
@@ -80,21 +81,15 @@ CodeDeploy with Github
 
   Execute the following command in the Linux instance
 
-        REGION=$(curl 169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/[a-z]$//')
-
-        yum update -y
-
-        yum install ruby wget -y
-
-        yum install httpd
-
+        sudo yum -y update
+        sudo yum -y install aws-cli
+        sudo yum install ruby
+        sudo yum install wget
         cd /home/ec2-user
-
-        wget https://aws-codedeploy-$REGION.s3.amazonaws.com/latest/install
-
+        wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
         chmod +x ./install
-
-        ./install auto
+        sudo ./install auto
+        sudo service codedeploy-agent status
 
 8 CodeDeploy
 
@@ -102,13 +97,15 @@ CodeDeploy with Github
 
   Enter AppName and Deployment Group Name
 
-  Select Ec2 Instance
+  Select Ec2 Instance choose Tag from step 5
 
   Service Role ARN - Choose "Service Role Created Above"
 
   Create Application
 
   Then Select the created Application
+
+9 Update Revision
 
   Deploy New Revision from "Actions Menu"
 
@@ -120,4 +117,4 @@ CodeDeploy with Github
 
   Deploy
 
-9 Visit the public ip to see the app  
+10 Visit the public ip to see the app  
