@@ -1,0 +1,128 @@
+Jenkins Users
+
+Access Key ID:
+AKIAJR4EIQD6YGOYLNSQ
+Secret Access Key:
+YZWRCuYEKehdh4r1GDX7ESi6GFGirANqkjSwYJ09
+
+ec2-user@ec2-54-164-73-191.compute-1.amazonaws.com
+
+http://ec2-54-164-73-191.compute-1.amazonaws.com
+
+ec2-54-164-73-191.compute-1.amazonaws.com
+
+f6ea6aed693b46dbbb368fd4f6c62bb2
+sudo yum -y update
+sudo yum -y install aws-cli
+sudo yum install ruby
+sudo yum install wget
+cd /home/ec2-user
+wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
+chmod +x ./install
+sudo ./install auto
+sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+sudo rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
+sudo yum install jenkins
+sudo service jenkins start
+
+sudo service jenkins status
+
+sudo service codedeploy-agent status
+
+sudo yum install jenkins
+
+Get Proj Details
+
+aws devicefarm list-projects
+BingTest
+arn:aws:devicefarm:us-west-2:910493853003:project:77c3218b-7571-44b1-af0c-a3002b0ff101
+
+Get devicepool
+
+aws devicefarm list-device-pools --arn arn:aws:devicefarm:us-west-2:910493853003:project:77c3218b-7571-44b1-af0c-a3002b0ff101
+Samsung
+arn:aws:devicefarm:us-west-2:910493853003:devicepool:77c3218b-7571-44b1-af0c-a3002b0ff101/3cb8c91f-8000-4e7c-8151-ca7dc34140f9
+
+Get upload
+aws devicefarm list-uploads --arn arn:aws:devicefarm:us-west-2:910493853003:project:77c3218b-7571-44b1-af0c-a3002b0ff101
+
+arn:aws:devicefarm:us-west-2:910493853003:upload:77c3218b-7571-44b1-af0c-a3002b0ff101/f2dc8bb8-d80b-473b-8c10-308d2c02c642
+
+
+
+aws devicefarm schedule-run --project-arn arn:aws:devicefarm:us-west-2:910493853003:project:77c3218b-7571-44b1-af0c-a3002b0ff101 --device-pool-arn arn:aws:devicefarm:us-west-2:910493853003:devicepool:77c3218b-7571-44b1-af0c-a3002b0ff101/3cb8c91f-8000-4e7c-8151-ca7dc34140f9 --test type=APPIUM_WEB_JAVA_TESTNG,testPackageArn=arn:aws:devicefarm:us-west-2:910493853003:upload:77c3218b-7571-44b1-af0c-a3002b0ff101/f2dc8bb8-d80b-473b-8c10-308d2c02c642
+
+
+get-run
+
+Jenkins Cli for Web app
+
+region=us-west-2
+
+projectName=BingTest
+devicePool=Samsung
+testPackage=zip-with-dependencies.zip
+runName=NewRun
+
+proj_Arn=$(aws devicefarm list-projects --region $region --query 'projects[?name==`'$projectName'`]'.arn --output text)
+
+dp_arn=$(aws devicefarm list-device-pools --region $region --arn $proj_Arn --query 'devicePools[?name==`'$devicePool'`]'.arn --output text)
+
+upload_arn=$(aws devicefarm list-uploads --region $region --arn $dp_arn --query 'uploads[?name==`'$testPackage'`]'.arn --output text)
+
+runName=$runName-$[$(aws devicefarm list-runs --region $region --arn $proj_Arn --query 'length(runs[])')+1]
+
+run_arn=$(aws devicefarm schedule-run --region $region \
+--project-arn $proj_Arn \
+--device-pool-arn $dp_arn \
+--name $runName \
+--test type=APPIUM_WEB_JAVA_TESTNG,testPackageArn=$upload_arn \
+--query 'run.arn' \
+--output text)
+
+aws devicefarm stop-run --region $region --arn $run_arn
+
+status=$(aws devicefarm get-run --region $region --arn $run_arn --query 'run.status' --output text)
+
+while [ "$status" != "COMPLETED" ]
+do
+    echo $status
+    status=$(aws devicefarm get-run --region $region --arn $run_arn --query 'run.status' --output text)
+    sleep 10
+done
+
+echo $status
+
+aws devicefarm get-run --region $region --arn $run_arn
+
+result=$(aws devicefarm get-run --region $region --arn $run_arn --query 'run.result' --output text)
+
+if [ "$result" == "PASSED" ]
+then
+    echo "Test Passed"
+else
+    echo "Test Failed"
+    exit 1
+fi
+
+
+To delete all runs
+
+allruns=($(aws devicefarm list-runs --arn $proj_Arn --query 'runs[].arn' --output text))
+
+for runarn in $allruns
+do
+   aws devicefarm delete-run --arn $runarn
+done
+
+
+
+
+
+
+
+
+
+
+
+
